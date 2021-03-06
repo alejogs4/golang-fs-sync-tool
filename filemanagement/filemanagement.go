@@ -87,6 +87,14 @@ func (fm *FilesManagement) traverseDirectory(files *[]FileInformation) filepath.
 			return err
 		}
 
+		fileTree := strings.Split(path, "/")
+		// Avoid hidden files, those which begins with a dot(.) are included in the final response
+		for _, treePart := range fileTree {
+			if strings.HasPrefix(treePart, ".") {
+				return nil
+			}
+		}
+
 		if !info.IsDir() {
 			*files = append(*files, FileInformation{
 				ID:        info.Name() + "-" + strconv.FormatInt(info.Size(), 10),
@@ -96,26 +104,6 @@ func (fm *FilesManagement) traverseDirectory(files *[]FileInformation) filepath.
 				ShortPath: fm.buildFileShortPath(path),
 			})
 		}
-
-		// Avoid hidden files, those which begins with a dot(.) are included in the final response
-		var notHiddenFiles []FileInformation = []FileInformation{}
-		for _, gotFile := range *files {
-			fileTree := strings.Split(gotFile.Path, "/")
-			hasPoint := false
-
-			for _, treePart := range fileTree {
-				if strings.HasPrefix(treePart, ".") {
-					hasPoint = true
-					break
-				}
-			}
-
-			if !hasPoint {
-				notHiddenFiles = append(notHiddenFiles, gotFile)
-			}
-		}
-
-		*files = notHiddenFiles
 
 		return nil
 	}
